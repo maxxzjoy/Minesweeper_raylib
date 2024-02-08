@@ -19,41 +19,76 @@
 *
 ********************************************************************************************/
 
-#include "raylib.h"
 
-//----------------------------------------------------------------------------------
+#include "header.h"
+
+// Global variables
+static Vector2 offset = {0};
+Vector2 MousePos = {0};
+
 // Main entry point
-//----------------------------------------------------------------------------------
 int main()
 {
     // Initialization
-    //--------------------------------------------------------------------------------------
-    const int screenWidth = 800;
-    const int screenHeight = 450;
+    offset.x = WIDTH%TILE_SIZE;
+    offset.y = HEIGHT%TILE_SIZE;
 
-    InitWindow(screenWidth, screenHeight, "raylib");
+    InitWindow(WIDTH, HEIGHT, "Minesweeper");
 
-    //--------------------------------------------------------------------------------------
     SetTargetFPS(60);               // Set our game to run at 60 frames-per-second
-    //--------------------------------------------------------------------------------------
 
     // Main game loop
     while (!WindowShouldClose())    // Detect window close button or ESC key
     {
         BeginDrawing();
 
-            ClearBackground(BLANK);
+            ClearBackground(LIGHTGRAY);
 
-            DrawText("Congrats! You created your first window!", 190, 200, 20, LIGHTGRAY);
+            DrawGrid();
+
+            MouseEvent();
 
         EndDrawing();
     }
 
-
     // De-Initialization
-    //--------------------------------------------------------------------------------------
     CloseWindow();                  // Close window and OpenGL context
-    //--------------------------------------------------------------------------------------
 
     return 0;
+}
+
+void DrawGrid(void){
+
+    // Vertical lines
+    for(int i = 0; i <= WIDTH/TILE_SIZE; i++ )
+        DrawLineV( (Vector2){TILE_SIZE*i + offset.x/2, offset.y/2}, (Vector2){TILE_SIZE*i + offset.x/2, HEIGHT - offset.y/2}, BLACK );
+
+    // Horizontal lines
+    for(int i = 0; i <= HEIGHT/TILE_SIZE; i++ )
+        DrawLineV( (Vector2){offset.x/2, TILE_SIZE*i + offset.y/2}, (Vector2){WIDTH - offset.x/2, TILE_SIZE*i + offset.y/2}, BLACK );
+
+}
+
+void MouseEvent(void){
+
+    // Check "Left" Mouse click event
+    if(IsMouseButtonReleased(MOUSE_LEFT_BUTTON)){
+        Vector2 TmpPos = {0};
+        TmpPos = GetMousePosition();
+        if( TmpPos.x >= (WIDTH - offset.x/2) || TmpPos.x <= (offset.x/2) ||
+        TmpPos.y >= (HEIGHT - offset.y/2) || TmpPos.y <= (offset.y/2)){
+            MousePos = {0};
+        }
+        else{
+            MousePos.x = TmpPos.x - offset.x/2;
+            MousePos.y = TmpPos.y - offset.y/2;
+        }
+    }
+
+    if(MousePos.x){
+        DrawRectangle( ((int)MousePos.x - (int)MousePos.x % TILE_SIZE + offset.x/2),
+        ((int)MousePos.y - (int)MousePos.y % TILE_SIZE + offset.y/2 + 1),
+        TILE_SIZE - 1, TILE_SIZE - 1, BLUE);
+    }
+
 }
