@@ -24,7 +24,7 @@
 
 // Global variables
 static Vector2 offset = {0};
-Vector2 MousePos = {0};
+Mouse_ev MousePos;
 
 // Main entry point
 int main()
@@ -77,17 +77,18 @@ void MouseEvent(void){
         TmpPos = GetMousePosition();
         if( TmpPos.x >= (WIDTH - offset.x/2) || TmpPos.x <= (offset.x/2) ||
         TmpPos.y >= (HEIGHT - offset.y/2) || TmpPos.y <= (offset.y/2)){
-            MousePos = {0};
+            MousePos.Clicked = false;
         }
         else{
-            MousePos.x = TmpPos.x - offset.x/2;
-            MousePos.y = TmpPos.y - offset.y/2;
+            MousePos.Pos.x = TmpPos.x - offset.x/2;
+            MousePos.Pos.y = TmpPos.y - offset.y/2;
+            MousePos.Clicked = true;
         }
     }
 
-    if(MousePos.x){
-        DrawRectangle( ((int)MousePos.x - (int)MousePos.x % TILE_SIZE + offset.x/2),
-        ((int)MousePos.y - (int)MousePos.y % TILE_SIZE + offset.y/2 + 1),
+    if(MousePos.Clicked){
+        DrawRectangle( ((int)MousePos.Pos.x - (int)MousePos.Pos.x % TILE_SIZE + offset.x/2),
+        ((int)MousePos.Pos.y - (int)MousePos.Pos.y % TILE_SIZE + offset.y/2 + 1),
         TILE_SIZE - 1, TILE_SIZE - 1, BLUE);
     }
 
