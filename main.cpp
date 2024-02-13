@@ -77,16 +77,23 @@ void MouseEvent(void){
         TmpPos = GetMousePosition();
         if( TmpPos.x >= (WIDTH - offset.x/2) || TmpPos.x <= (offset.x/2) ||
         TmpPos.y >= (HEIGHT - offset.y/2) || TmpPos.y <= (offset.y/2)){
-            MousePos.Clicked = false;
+            MousePos.Inside = false;
         }
         else{
             MousePos.Pos.x = TmpPos.x - offset.x/2;
             MousePos.Pos.y = TmpPos.y - offset.y/2;
-            MousePos.Clicked = true;
+            MousePos.Inside = true;
         }
     }
 
-    if(MousePos.Clicked){
+    MousePos.Clicked_GridPos.x = (int)( MousePos.Pos.x / TILE_SIZE);
+    MousePos.Clicked_GridPos.y = (int)( MousePos.Pos.y / TILE_SIZE);
+
+    // For checking the clicked tile position
+    DrawText( TextFormat("(%2.0f, %2.0f)", MousePos.Clicked_GridPos.x, MousePos.Clicked_GridPos.y), 30, 5, 16, BLACK);
+    
+    // Drawing part, gonna move later
+    if(MousePos.Inside){
         DrawRectangle( ((int)MousePos.Pos.x - (int)MousePos.Pos.x % TILE_SIZE + offset.x/2),
         ((int)MousePos.Pos.y - (int)MousePos.Pos.y % TILE_SIZE + offset.y/2 + 1),
         TILE_SIZE - 1, TILE_SIZE - 1, BLUE);
