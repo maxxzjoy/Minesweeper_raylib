@@ -23,16 +23,21 @@
 #include "header.h"
 
 // Global variables
-static Vector2 offset = {0};
+static Vector2 offset = {0}, LTcorner = {0}, RBcorner = {0};
 Mouse_ev MousePos;
 
 // Main entry point
 int main()
 {
-    // Initialization
+    // Calculating cordinates on the window
     offset.x = WIDTH%TILE_SIZE;
-    offset.y = HEIGHT%TILE_SIZE;
+    offset.y = (HEIGHT - MENUHIEGHT)%TILE_SIZE;
+    LTcorner.x = offset.x/2;
+    LTcorner.y = offset.y/2 + MENUHIEGHT;
+    RBcorner.x = WIDTH - LTcorner.x;
+    RBcorner.y = HEIGHT - offset.y/2;
 
+    // Initialization
     InitWindow(WIDTH, HEIGHT, "Minesweeper");
 
     SetTargetFPS(60);               // Set our game to run at 60 frames-per-second
@@ -61,11 +66,11 @@ void DrawGrid(void){
 
     // Vertical lines
     for(int i = 0; i <= WIDTH/TILE_SIZE; i++ )
-        DrawLineV( (Vector2){TILE_SIZE*i + offset.x/2, offset.y/2}, (Vector2){TILE_SIZE*i + offset.x/2, HEIGHT - offset.y/2}, BLACK );
+        DrawLineV( (Vector2){TILE_SIZE*i + LTcorner.x, LTcorner.y}, (Vector2){TILE_SIZE*i + LTcorner.x, RBcorner.y}, BLACK );
 
     // Horizontal lines
-    for(int i = 0; i <= HEIGHT/TILE_SIZE; i++ )
-        DrawLineV( (Vector2){offset.x/2, TILE_SIZE*i + offset.y/2}, (Vector2){WIDTH - offset.x/2, TILE_SIZE*i + offset.y/2}, BLACK );
+    for(int i = 0; i <= (HEIGHT-MENUHIEGHT)/TILE_SIZE; i++ )
+        DrawLineV( (Vector2){LTcorner.x, TILE_SIZE*i + LTcorner.y}, (Vector2){RBcorner.x, TILE_SIZE*i + LTcorner.y}, BLACK );
 
 }
 
@@ -75,27 +80,27 @@ void MouseEvent(void){
     if(IsMouseButtonReleased(MOUSE_LEFT_BUTTON)){
         Vector2 TmpPos = {0};
         TmpPos = GetMousePosition();
-        if( TmpPos.x >= (WIDTH - offset.x/2) || TmpPos.x <= (offset.x/2) ||
-        TmpPos.y >= (HEIGHT - offset.y/2) || TmpPos.y <= (offset.y/2)){
+        if( TmpPos.x >= RBcorner.x || TmpPos.x <= LTcorner.x ||
+        TmpPos.y >= RBcorner.y || TmpPos.y <= LTcorner.y){
+            MousePos.Pos = {0};
+            MousePos.Clicked_GridPos = {0};
             MousePos.Inside = false;
         }
         else{
-            MousePos.Pos.x = TmpPos.x - offset.x/2;
-            MousePos.Pos.y = TmpPos.y - offset.y/2;
+            MousePos.Pos = TmpPos;
+            MousePos.Clicked_GridPos.x = (short)( MousePos.Pos.x / TILE_SIZE);
+            MousePos.Clicked_GridPos.y = (short)( (MousePos.Pos.y - LTcorner.y)  / TILE_SIZE);
             MousePos.Inside = true;
         }
     }
 
-    MousePos.Clicked_GridPos.x = (int)( MousePos.Pos.x / TILE_SIZE);
-    MousePos.Clicked_GridPos.y = (int)( MousePos.Pos.y / TILE_SIZE);
-
     // For checking the clicked tile position
-    DrawText( TextFormat("(%2.0f, %2.0f)", MousePos.Clicked_GridPos.x, MousePos.Clicked_GridPos.y), 30, 5, 16, BLACK);
+    DrawText( TextFormat("(%d, %d)", MousePos.Clicked_GridPos.x, MousePos.Clicked_GridPos.y), 30, 5, 20, BLACK);
     
     // Drawing part, gonna move later
     if(MousePos.Inside){
-        DrawRectangle( ((int)MousePos.Pos.x - (int)MousePos.Pos.x % TILE_SIZE + offset.x/2),
-        ((int)MousePos.Pos.y - (int)MousePos.Pos.y % TILE_SIZE + offset.y/2 + 1),
+        DrawRectangle( (MousePos.Clicked_GridPos.x * TILE_SIZE + LTcorner.x),
+        (MousePos.Clicked_GridPos.y * TILE_SIZE + LTcorner.y + 1),
         TILE_SIZE - 1, TILE_SIZE - 1, BLUE);
     }
 

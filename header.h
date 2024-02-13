@@ -6,6 +6,13 @@ using namespace std;
 #define TILE_SIZE 23
 #define WIDTH 800
 #define HEIGHT 450
+#define MENUHIEGHT 60
+
+struct GridPos
+{
+    short x, y;
+};
+
 
 class Mouse_ev
 {
@@ -15,7 +22,7 @@ public:
     // Real mouse click position
     Vector2 Pos;
     // Clicked tile position
-    Vector2 Clicked_GridPos;
+    GridPos Clicked_GridPos;
     // Check mouse click inside the tiles
     bool Inside;
 
