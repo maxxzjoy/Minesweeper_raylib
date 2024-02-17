@@ -23,22 +23,27 @@
 #include "header.h"
 
 // Global variables
-static Vector2 offset = {0}, LTcorner = {0}, RBcorner = {0};
+static Vector2 LTcorner = {0}, RBcorner = {0};
 Mouse_ev MousePos;
+Tile GameTable[COL][ROW];
 
 // Main entry point
 int main()
 {
     // Calculating cordinates on the window
-    offset.x = WIDTH%TILE_SIZE;
-    offset.y = (HEIGHT - MENUHIEGHT)%TILE_SIZE;
-    LTcorner.x = offset.x/2;
-    LTcorner.y = offset.y/2 + MENUHIEGHT;
-    RBcorner.x = WIDTH - LTcorner.x;
-    RBcorner.y = HEIGHT - offset.y/2;
+    LTcorner.x = EDGEOFFSET;
+    LTcorner.y = EDGEOFFSET + MENUHIEGHT;
+    RBcorner.x = LTcorner.x + COL * TILE_SIZE;
+    RBcorner.y = LTcorner.y + ROW * TILE_SIZE;
+
+    for(short i = 0; i < COL; i++ ){
+        for(short j = 0; j < ROW; j++ ){
+            GameTable[i][j].cordi = (GridPos){.x = i, .y = j};
+        }
+    }
 
     // Initialization
-    InitWindow(WIDTH, HEIGHT, "Minesweeper");
+    InitWindow(RBcorner.x + EDGEOFFSET, RBcorner.y + EDGEOFFSET, "Minesweeper");
 
     SetTargetFPS(60);               // Set our game to run at 60 frames-per-second
 
@@ -49,7 +54,7 @@ int main()
 
             ClearBackground(LIGHTGRAY);
 
-            DrawGrid();
+            DrawBoard();
 
             MouseEvent();
 
@@ -62,16 +67,29 @@ int main()
     return 0;
 }
 
-void DrawGrid(void){
+void DrawBoard(void){
 
-    // Vertical lines
-    for(int i = 0; i <= WIDTH/TILE_SIZE; i++ )
-        DrawLineV( (Vector2){TILE_SIZE*i + LTcorner.x, LTcorner.y}, (Vector2){TILE_SIZE*i + LTcorner.x, RBcorner.y}, BLACK );
+    // For checking the clicked tile position
+    DrawText( TextFormat("(%d, %d)", MousePos.clicked_cordi.x, MousePos.clicked_cordi.y), 30, 5, 20, BLACK);
 
-    // Horizontal lines
-    for(int i = 0; i <= (HEIGHT-MENUHIEGHT)/TILE_SIZE; i++ )
-        DrawLineV( (Vector2){LTcorner.x, TILE_SIZE*i + LTcorner.y}, (Vector2){RBcorner.x, TILE_SIZE*i + LTcorner.y}, BLACK );
+    // Draw Board outline
+    DrawRectangleLines(LTcorner.x-1, LTcorner.y-1, (RBcorner.x-LTcorner.x+2), (RBcorner.y-LTcorner.y+2), BLACK);
+    
+    // Draw Board inside
+    for(int i = 0; i < COL; i++ ){
+        for(int j = 0; j < ROW; j++ ){
+            DrawRectangleLines(TILE_SIZE*i + LTcorner.x, TILE_SIZE*j + LTcorner.y, TILE_SIZE, TILE_SIZE, BLACK);
+            if(GameTable[i][j].revealed)
+                DrawRectangle(TILE_SIZE*i + LTcorner.x + 1, TILE_SIZE*j + LTcorner.y + 1, TILE_SIZE-2, TILE_SIZE-2, VIOLET);
+        }
+    }
 
+    // Showing the last clicked tile
+    if(MousePos.Inside){
+        DrawRectangle( (MousePos.clicked_cordi.x * TILE_SIZE + LTcorner.x + 1),
+        (MousePos.clicked_cordi.y * TILE_SIZE + LTcorner.y + 1),
+        TILE_SIZE - 2, TILE_SIZE - 2, BLUE);
+    }
 }
 
 void MouseEvent(void){
@@ -80,28 +98,22 @@ void MouseEvent(void){
     if(IsMouseButtonReleased(MOUSE_LEFT_BUTTON)){
         Vector2 TmpPos = {0};
         TmpPos = GetMousePosition();
+
+        // Check if click on tile
         if( TmpPos.x >= RBcorner.x || TmpPos.x <= LTcorner.x ||
         TmpPos.y >= RBcorner.y || TmpPos.y <= LTcorner.y){
-            MousePos.Pos = {0};
-            MousePos.Clicked_GridPos = {0};
+            MousePos.clicked_cordi = {0};
             MousePos.Inside = false;
         }
         else{
-            MousePos.Pos = TmpPos;
-            MousePos.Clicked_GridPos.x = (short)( MousePos.Pos.x / TILE_SIZE);
-            MousePos.Clicked_GridPos.y = (short)( (MousePos.Pos.y - LTcorner.y)  / TILE_SIZE);
+            MousePos.clicked_cordi.x = (short)( (TmpPos.x - LTcorner.x) / TILE_SIZE);
+            MousePos.clicked_cordi.y = (short)( (TmpPos.y - LTcorner.y) / TILE_SIZE);
             MousePos.Inside = true;
+            GameTable[MousePos.clicked_cordi.x][MousePos.clicked_cordi.y].revealed = true;
         }
     }
+}
 
-    // For checking the clicked tile position
-    DrawText( TextFormat("(%d, %d)", MousePos.Clicked_GridPos.x, MousePos.Clicked_GridPos.y), 30, 5, 20, BLACK);
-    
-    // Drawing part, gonna move later
-    if(MousePos.Inside){
-        DrawRectangle( (MousePos.Clicked_GridPos.x * TILE_SIZE + LTcorner.x),
-        (MousePos.Clicked_GridPos.y * TILE_SIZE + LTcorner.y + 1),
-        TILE_SIZE - 1, TILE_SIZE - 1, BLUE);
-    }
+void PlaceMines(){
 
 }

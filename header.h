@@ -3,38 +3,52 @@
 
 using namespace std;
 
-#define TILE_SIZE 23
-#define WIDTH 800
-#define HEIGHT 450
-#define MENUHIEGHT 60
+#define TILE_SIZE 28
+#define COL 15
+#define ROW 8
+#define EDGEOFFSET 8
+#define MENUHIEGHT 30
+#define TABLEMAX 99
 
-struct GridPos
-{
+
+struct GridPos{
     short x, y;
 };
 
+struct Tile{
+    GridPos cordi;
+    bool revealed = false;
+    bool isMine = false;
+};
 
 class Mouse_ev
 {
 private:
     
 public:
-    // Real mouse click position
-    Vector2 Pos;
     // Clicked tile position
-    GridPos Clicked_GridPos;
+    GridPos clicked_cordi;
     // Check mouse click inside the tiles
     bool Inside;
 
     // Initialization
     Mouse_ev() {
-        Pos = {0};
-        Clicked_GridPos = {0};
+        clicked_cordi = {0};
         Inside = false;
     };
 };
 
+class Board
+{
+private:
+    static Tile Mine_Table[TABLEMAX][TABLEMAX];
+public:
+    void GenerateMine(int seed);
+};
 
+void Board::GenerateMine(int seed){
 
-void DrawGrid(void);
+}
+
+void DrawBoard(void);
 void MouseEvent(void);
