@@ -41,6 +41,7 @@ int main()
             GameTable[i][j].cordi = (GridPos){.x = i, .y = j};
         }
     }
+    PlaceMines(35);
 
     // Initialization
     InitWindow(RBcorner.x + EDGEOFFSET, RBcorner.y + EDGEOFFSET, "Minesweeper");
@@ -58,7 +59,7 @@ int main()
 
             MouseEvent();
 
-        EndDrawing();
+        EndDrawing(); 
     }
 
     // De-Initialization
@@ -80,7 +81,7 @@ void DrawBoard(void){
         for(int j = 0; j < ROW; j++ ){
             DrawRectangleLines(TILE_SIZE*i + LTcorner.x, TILE_SIZE*j + LTcorner.y, TILE_SIZE, TILE_SIZE, BLACK);
             if(GameTable[i][j].revealed)
-                DrawRectangle(TILE_SIZE*i + LTcorner.x + 1, TILE_SIZE*j + LTcorner.y + 1, TILE_SIZE-2, TILE_SIZE-2, VIOLET);
+                DrawRectangle(TILE_SIZE*i + LTcorner.x + 1, TILE_SIZE*j + LTcorner.y + 1, TILE_SIZE-2, TILE_SIZE-2, (!GameTable[i][j].isMine)?VIOLET:RED);
         }
     }
 
@@ -114,6 +115,21 @@ void MouseEvent(void){
     }
 }
 
-void PlaceMines(){
+bool ClosedtoClick(GridPos c){
 
+}
+
+void PlaceMines(int minecount){
+    short r = 0;
+    srand(time(0));
+    while(minecount > 0){
+        int seeds = rand() % (COL);
+
+        if(!GameTable[seeds][r].isMine){
+            GameTable[seeds][r].isMine = true;
+            minecount--;
+        }
+        r++;
+        if(r == ROW)    r=0;
+    }
 }

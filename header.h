@@ -1,14 +1,17 @@
 #include "raylib.h"
 #include "iostream"
+#include <time.h>
 
 using namespace std;
 
 #define TILE_SIZE 28
-#define COL 15
-#define ROW 8
+#define COL 12
+#define ROW 10
 #define EDGEOFFSET 8
 #define MENUHIEGHT 30
 #define TABLEMAX 99
+
+#define DEBUG 1
 
 
 struct GridPos{
@@ -17,7 +20,7 @@ struct GridPos{
 
 struct Tile{
     GridPos cordi;
-    bool revealed = false;
+    bool revealed = DEBUG?true:false;
     bool isMine = false;
 };
 
@@ -38,7 +41,7 @@ public:
     };
 };
 
-class Board
+/* class Board
 {
 private:
     static Tile Mine_Table[TABLEMAX][TABLEMAX];
@@ -49,6 +52,7 @@ public:
 void Board::GenerateMine(int seed){
 
 }
-
+ */
 void DrawBoard(void);
 void MouseEvent(void);
+void PlaceMines(int minecount);
