@@ -15,15 +15,27 @@ void Minesweeper::InitGame(void){
         }
     }
     first_left_click = true;
+    game_end = false;
+}
+
+void Minesweeper::MouseEvent(void){
+
+    LeftMouseEvent();
+
+    RightMouseEvent();
+
 }
 
 
-bool Minesweeper::MouseEvent(void){
+//------------------------------------------------------------------------
+//  Private functions
+//------------------------------------------------------------------------
 
-    TmpPos = GetMousePosition();
+// Check mouse left click event
+void Minesweeper::LeftMouseEvent(void){
 
-    // Check mouse left click event
     if(IsMouseButtonReleased(MOUSE_LEFT_BUTTON)){
+        TmpPos = GetMousePosition();
         Inside = false;
         clicked_cordi = {0};
 
@@ -31,7 +43,6 @@ bool Minesweeper::MouseEvent(void){
         if( ClickedInside(TmpPos, LTcorner, COL*TILE_SIZE, ROW*TILE_SIZE ) ){
             clicked_cordi.x = (short)( (TmpPos.x - LTcorner.x) / TILE_SIZE);
             clicked_cordi.y = (short)( (TmpPos.y - LTcorner.y) / TILE_SIZE);
-            GameTable[clicked_cordi.x][clicked_cordi.y].revealed = true;
             Inside = true;
 
             // Generate mines
@@ -40,14 +51,30 @@ bool Minesweeper::MouseEvent(void){
                 first_left_click = false;
             }
 
+            if(IsMouseButtonDown(MOUSE_RIGHT_BUTTON)){
+                if(CompareFlagcounts(clicked_cordi) && GameTable[clicked_cordi.x][clicked_cordi.y].revealed)
+                    Reveal8Tile(clicked_cordi);
+            }else{
+                GameTable[clicked_cordi.x][clicked_cordi.y].revealed = true;
+
+                if(GameTable[clicked_cordi.x][clicked_cordi.y].isMine)
+                    game_end = true;
+            }
+
             // Reveal all con tiles if Minecount = 0
             if(GameTable[clicked_cordi.x][clicked_cordi.y].Minecount == 0)
                 Reveal8Tile(clicked_cordi);
         }
     }
 
-    // Check mouse right click event
+}
+
+
+// Check mouse right click event
+void Minesweeper::RightMouseEvent(void){
+
     if(IsMouseButtonReleased(MOUSE_RIGHT_BUTTON)){
+        TmpPos = GetMousePosition();
         Inside = false;
         clicked_cordi = {0};
 
@@ -56,24 +83,34 @@ bool Minesweeper::MouseEvent(void){
             clicked_cordi.x = (short)( (TmpPos.x - LTcorner.x) / TILE_SIZE) ;
             clicked_cordi.y = (short)( (TmpPos.y - LTcorner.y) / TILE_SIZE);
             Inside = true;
-            GameTable[clicked_cordi.x][clicked_cordi.y].flag = !GameTable[clicked_cordi.x][clicked_cordi.y].flag;
+            if(!GameTable[clicked_cordi.x][clicked_cordi.y].revealed)
+                GameTable[clicked_cordi.x][clicked_cordi.y].flag = !GameTable[clicked_cordi.x][clicked_cordi.y].flag;
         }
     }
-    
-    return true;
+
 }
 
+bool Minesweeper::CompareFlagcounts(GridPos c){
+    short counts = 0;
+    for(int i = -1; i < 2; i++){
+        if( InsideRange((c.x+i), COL) )
+            for(int j = -1; j < 2; j++){  
+                if( InsideRange((c.x+j), ROW) )
+                    if(GameTable[c.x+i][c.y+j].flag)  counts++;
+                
+            }
+    }
 
-//------------------------------------------------------------------------
-//  Private functions
-//------------------------------------------------------------------------
+    return (counts == GameTable[c.x][c.y].Minecount)?true:false;
+}
 
+// Add 1 minecount to all tiles are connected to (x, y)
 void Minesweeper::AddOne2Tiles(short x, short y){
     for(int i = -1; i < 2; i++){
-        if( insideRange((x+i), COL) )
+        if( InsideRange((x+i), COL) )
             for(int j = -1; j < 2; j++){  
-                if( insideRange((y+j), ROW) )
-                    if(!GameTable[x+i][y+j].isMine)  GameTable[x+i][y+j].Minecount++;  
+                if( InsideRange((y+j), ROW) )
+                    GameTable[x+i][y+j].Minecount++;  
                 
             }
     }
@@ -90,7 +127,6 @@ void Minesweeper::PlaceMines(int minecount = 1){
         if(!GameTable[seeds][r].isMine && !ClosedtoClick((GridPos){seeds, r})){
             GameTable[seeds][r].isMine = true;
             AddOne2Tiles(seeds, r);
-            GameTable[seeds][r].Minecount = 0;
             minecount--;
         }
         r++;
@@ -101,11 +137,14 @@ void Minesweeper::PlaceMines(int minecount = 1){
 void Minesweeper::Reveal8Tile(GridPos cor){
     GameTable[cor.x][cor.y].revealed = true;
     for(int i = -1; i < 2; i++)
-        if( insideRange((cor.x+i), COL) )
+        if( InsideRange((cor.x+i), COL) )
             for(int j = -1; j < 2; j++)
-                if( insideRange((cor.y+j), ROW) ){
-                    if(!GameTable[cor.x+i][cor.y+j].revealed){
+                if( InsideRange((cor.y+j), ROW) ){
+                    if(!GameTable[cor.x+i][cor.y+j].revealed && !GameTable[cor.x+i][cor.y+j].flag){
                         GameTable[cor.x+i][cor.y+j].revealed = true;
+
+                        if(GameTable[cor.x+i][cor.y+j].isMine)  game_end = true;
+
                         if(!GameTable[cor.x+i][cor.y+j].Minecount)
                             Reveal8Tile( (GridPos){ (short)(cor.x+i), (short)(cor.y+j)} );  
                     }  
@@ -120,7 +159,7 @@ bool Minesweeper::ClickedInside(Vector2 click, Vector2 LT, int width, int hieght
         return true;
 }
 
-bool Minesweeper::insideRange(int a, int b){
+bool Minesweeper::InsideRange(int a, int b){
     return ( (a>=0) && (a < b))?true:false;
 }
 
@@ -142,6 +181,17 @@ bool Minesweeper::ClosedtoClick(GridPos c){
 GridPos Minesweeper::GetClickedCordi(void){
     return clicked_cordi;
 }
+
+/** 
+ * @brief Get the last clicked cordinate on tile 
+ * 
+ * @param none
+ * @return
+*/
+bool Minesweeper::GetEndGameFlag(void){
+    return game_end;
+}
+
 
 /** 
  * @brief Get the last clicked cordinate on tile 

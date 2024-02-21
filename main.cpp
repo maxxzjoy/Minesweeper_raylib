@@ -49,6 +49,8 @@ int main()
     {
         MineSweeperGame.MouseEvent();
 
+        if(MineSweeperGame.GetEndGameFlag())    MineSweeperGame.InitGame();
+
         BeginDrawing();
 
             ClearBackground(LIGHTGRAY);
@@ -65,10 +67,10 @@ int main()
 }
 
 void DrawBoard(void){
-    GridPos i = MineSweeperGame.GetClickedCordi();
+/*     GridPos i = MineSweeperGame.GetClickedCordi();
 
     // For checking the clicked tile position
-    DrawText( TextFormat("(%d, %d)", i.x, i.y), 30, 5, 20, BLACK);
+    DrawText( TextFormat("(%d, %d)", i.x, i.y), 30, 5, 20, BLACK); */
 
     // Draw Board outline
     DrawRectangleLines(LTcorner.x-1, LTcorner.y-1, (RBcorner.x-LTcorner.x+2), (RBcorner.y-LTcorner.y+2), BLACK);
