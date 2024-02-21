@@ -1,12 +1,20 @@
-#include "MouseEvent.h"
+#include "Minesweeper.h"
 
+//------------------------------------------------------------------------
+//  Main functions
+//------------------------------------------------------------------------
 
-bool Minesweeper::ClickedInside(Vector2 click, Vector2 LT, int width, int hieght){
-    if( click.x <= LT.x || click.x >= LT.x + width ||
-    click.y <= LT.y || click.y >= LT.y + hieght)
-        return false;
-    else
-        return true;
+void Minesweeper::InitGame(void){
+    for(short i = 0; i < COL; i++ ){
+        for(short j = 0; j < ROW; j++ ){
+            GameTable[i][j].cordi = (GridPos){.x = i, .y = j};
+            GameTable[i][j].flag = false;
+            GameTable[i][j].isMine = false;
+            GameTable[i][j].Minecount = 0;
+            GameTable[i][j].revealed = false;
+        }
+    }
+    first_left_click = true;
 }
 
 
@@ -56,23 +64,9 @@ bool Minesweeper::MouseEvent(void){
 }
 
 
-
-void Minesweeper::InitGame(void){
-    for(short i = 0; i < COL; i++ ){
-        for(short j = 0; j < ROW; j++ ){
-            GameTable[i][j].cordi = (GridPos){.x = i, .y = j};
-            GameTable[i][j].flag = false;
-            GameTable[i][j].isMine = false;
-            GameTable[i][j].Minecount = 0;
-            GameTable[i][j].revealed = false;
-        }
-    }
-    first_left_click = true;
-}
-
-bool Minesweeper::insideRange(int a, int b){
-    return ( (a>=0) && (a < b))?true:false;
-}
+//------------------------------------------------------------------------
+//  Private functions
+//------------------------------------------------------------------------
 
 void Minesweeper::AddOne2Tiles(short x, short y){
     for(int i = -1; i < 2; i++){
@@ -85,9 +79,6 @@ void Minesweeper::AddOne2Tiles(short x, short y){
     }
 }
 
-bool Minesweeper::ClosedtoClick(GridPos c){
-    return (  ( abs(c.x-clicked_cordi.x) < 2 ) && ( abs(c.y-clicked_cordi.y) < 2 ));
-}
 
 void Minesweeper::PlaceMines(int minecount = 1){
     srand(time(0));
@@ -121,32 +112,74 @@ void Minesweeper::Reveal8Tile(GridPos cor){
                 }
 }
 
-
-bool Minesweeper::GetInsideTable(void){
-    return Inside;
+bool Minesweeper::ClickedInside(Vector2 click, Vector2 LT, int width, int hieght){
+    if( click.x <= LT.x || click.x >= LT.x + width ||
+    click.y <= LT.y || click.y >= LT.y + hieght)
+        return false;
+    else
+        return true;
 }
 
-bool Minesweeper::GetFirstClick(void){
-    return first_left_click;
+bool Minesweeper::insideRange(int a, int b){
+    return ( (a>=0) && (a < b))?true:false;
 }
 
+bool Minesweeper::ClosedtoClick(GridPos c){
+    return (  ( abs(c.x-clicked_cordi.x) < 2 ) && ( abs(c.y-clicked_cordi.y) < 2 ));
+}
+
+
+//------------------------------------------------------------------------
+//  Public functions for getting info from class
+//------------------------------------------------------------------------
+
+/** 
+ * @brief Get the last clicked cordinate on tile 
+ * 
+ * @param none
+ * @return
+*/
+GridPos Minesweeper::GetClickedCordi(void){
+    return clicked_cordi;
+}
+
+/** 
+ * @brief Get the last clicked cordinate on tile 
+ * 
+ * @param
+ * @return
+*/
 bool Minesweeper::GetTileRevealState(int x, int y){
     return GameTable[x][y].revealed;
 }
 
+/** 
+ * @brief Get the last clicked cordinate on tile 
+ * 
+ * @param
+ * @return
+*/
 bool Minesweeper::GetTileMineState(int x, int y){
     return GameTable[x][y].isMine;
 }
 
+/** 
+ * @brief Get the last clicked cordinate on tile 
+ * 
+ * @param
+ * @return 
+*/
 bool Minesweeper::GetTileFlagState(int x, int y){
     return GameTable[x][y].flag;
 }
 
+/** 
+ * @brief Get the mines number within range
+ * 
+ * @param
+ * @return
+*/
 int Minesweeper::GetTileMineCount(int x, int y){
     return GameTable[x][y].Minecount;
-}
-
-GridPos Minesweeper::GetClickedCordi(void){
-    return clicked_cordi;
 }
 
