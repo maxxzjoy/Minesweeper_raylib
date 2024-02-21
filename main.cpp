@@ -23,42 +23,38 @@
 #include "header.h"
 
 // Global variables
-static Vector2 LTcorner = {0}, RBcorner = {0};
-Mouse_ev MousePos;
-Tile GameTable[COL][ROW];
+static Vector2 LTcorner = {EDGEOFFSET, EDGEOFFSET + MENUHIEGHT}, RBcorner = {0};
+
+Minesweeper MineSweeperGame(LTcorner);
+
 
 // Main entry point
 int main()
 {
+    
+
     // Calculating cordinates on the window
-    LTcorner.x = EDGEOFFSET;
-    LTcorner.y = EDGEOFFSET + MENUHIEGHT;
     RBcorner.x = LTcorner.x + COL * TILE_SIZE;
     RBcorner.y = LTcorner.y + ROW * TILE_SIZE;
 
-    for(short i = 0; i < COL; i++ ){
-        for(short j = 0; j < ROW; j++ ){
-            GameTable[i][j].cordi = (GridPos){.x = i, .y = j};
-        }
-    }
-    PlaceMines(35);
-
     // Initialization
     InitWindow(RBcorner.x + EDGEOFFSET, RBcorner.y + EDGEOFFSET, "Minesweeper");
+    
+    MineSweeperGame.InitGame();
 
     SetTargetFPS(60);               // Set our game to run at 60 frames-per-second
 
     // Main game loop
     while (!WindowShouldClose())    // Detect window close button or ESC key
     {
+        MineSweeperGame.MouseEvent();
+
         BeginDrawing();
 
             ClearBackground(LIGHTGRAY);
 
             DrawBoard();
-
-            MouseEvent();
-
+    
         EndDrawing(); 
     }
 
@@ -69,67 +65,29 @@ int main()
 }
 
 void DrawBoard(void){
+    GridPos i = MineSweeperGame.GetClickedCordi();
 
     // For checking the clicked tile position
-    DrawText( TextFormat("(%d, %d)", MousePos.clicked_cordi.x, MousePos.clicked_cordi.y), 30, 5, 20, BLACK);
+    DrawText( TextFormat("(%d, %d)", i.x, i.y), 30, 5, 20, BLACK);
 
     // Draw Board outline
     DrawRectangleLines(LTcorner.x-1, LTcorner.y-1, (RBcorner.x-LTcorner.x+2), (RBcorner.y-LTcorner.y+2), BLACK);
-    
+
     // Draw Board inside
     for(int i = 0; i < COL; i++ ){
         for(int j = 0; j < ROW; j++ ){
             DrawRectangleLines(TILE_SIZE*i + LTcorner.x, TILE_SIZE*j + LTcorner.y, TILE_SIZE, TILE_SIZE, BLACK);
-            if(GameTable[i][j].revealed)
-                DrawRectangle(TILE_SIZE*i + LTcorner.x + 1, TILE_SIZE*j + LTcorner.y + 1, TILE_SIZE-2, TILE_SIZE-2, (!GameTable[i][j].isMine)?VIOLET:RED);
+            if(MineSweeperGame.GetTileRevealState(i,j)){
+                DrawRectangle(TILE_SIZE*i + LTcorner.x + 1, TILE_SIZE*j + LTcorner.y + 1, TILE_SIZE-2, TILE_SIZE-2, (!MineSweeperGame.GetTileMineState(i, j))?VIOLET:RED);
+                if(!MineSweeperGame.GetTileMineState(i, j))
+                    DrawText( TextFormat("%d", MineSweeperGame.GetTileMineCount(i, j)), TILE_SIZE*(i+0.3) + LTcorner.x, TILE_SIZE*(j+0.3) + LTcorner.y, 18, BLACK);
+            }
+            if(MineSweeperGame.GetTileFlagState(i, j)){
+                DrawRectangle(TILE_SIZE*i + LTcorner.x + 1, TILE_SIZE*j + LTcorner.y + 1, TILE_SIZE-2, TILE_SIZE-2, DARKGREEN);
+            }
+                
         }
     }
 
-    // Showing the last clicked tile
-    if(MousePos.Inside){
-        DrawRectangle( (MousePos.clicked_cordi.x * TILE_SIZE + LTcorner.x + 1),
-        (MousePos.clicked_cordi.y * TILE_SIZE + LTcorner.y + 1),
-        TILE_SIZE - 2, TILE_SIZE - 2, BLUE);
-    }
 }
 
-void MouseEvent(void){
-
-    // Check "Left" Mouse click event
-    if(IsMouseButtonReleased(MOUSE_LEFT_BUTTON)){
-        Vector2 TmpPos = {0};
-        TmpPos = GetMousePosition();
-
-        // Check if click on tile
-        if( TmpPos.x >= RBcorner.x || TmpPos.x <= LTcorner.x ||
-        TmpPos.y >= RBcorner.y || TmpPos.y <= LTcorner.y){
-            MousePos.clicked_cordi = {0};
-            MousePos.Inside = false;
-        }
-        else{
-            MousePos.clicked_cordi.x = (short)( (TmpPos.x - LTcorner.x) / TILE_SIZE);
-            MousePos.clicked_cordi.y = (short)( (TmpPos.y - LTcorner.y) / TILE_SIZE);
-            MousePos.Inside = true;
-            GameTable[MousePos.clicked_cordi.x][MousePos.clicked_cordi.y].revealed = true;
-        }
-    }
-}
-
-bool ClosedtoClick(GridPos c){
-
-}
-
-void PlaceMines(int minecount){
-    short r = 0;
-    srand(time(0));
-    while(minecount > 0){
-        int seeds = rand() % (COL);
-
-        if(!GameTable[seeds][r].isMine){
-            GameTable[seeds][r].isMine = true;
-            minecount--;
-        }
-        r++;
-        if(r == ROW)    r=0;
-    }
-}
